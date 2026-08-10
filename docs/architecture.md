@@ -342,6 +342,94 @@ Merge
 AstraMind UI should become a universal AI desktop capable of interacting with multiple AI systems through a common interface.
 
 ```
+# Directory structure
+astramind-ui/
+│
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   ├── workflows/
+│   └── pull_request_template.md
+│
+├── apps/
+│   ├── image-studio/
+│   ├── video-studio/
+│   ├── chat-studio/
+│   ├── document-studio/
+│   └── agent-studio/
+│
+├── packages/
+│   ├── ui-components/
+│   ├── shared/
+│   ├── workflow-module/
+│   ├── image-module/
+│   ├── video-module/
+│   ├── chat-module/
+│   ├── document-module/
+│   ├── agent-module/
+│   ├── auth-module/
+│   ├── settings-module/
+│   └── theme-module/
+│
+├── connectors/
+│   ├── comfyui/
+│   ├── ollama/
+│   ├── openai/
+│   ├── lmstudio/
+│   ├── astramind/
+│   └── future/
+│
+├── shared/
+│   ├── api/
+│   ├── config/
+│   ├── constants/
+│   ├── types/
+│   ├── utils/
+│   └── hooks/
+│
+├── assets/
+│   ├── images/
+│   ├── icons/
+│   ├── logos/
+│   └── fonts/
+│
+├── docs/
+│   ├── architecture.md
+│   ├── roadmap.md
+│   ├── development.md
+│   ├── coding-standards.md
+│   ├── api.md
+│   ├── ui-guidelines.md
+│   ├── connectors.md
+│   ├── contributing.md
+│   ├── release-process.md
+│   └── decisions/
+│       ├── ADR-0001-project-structure.md
+│       ├── ADR-0002-ui-architecture.md
+│       └── README.md
+│
+├── scripts/
+│   ├── build.sh
+│   ├── test.sh
+│   ├── lint.sh
+│   └── release.sh
+│
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+│
+├── .editorconfig
+├── .gitignore
+├── LICENSE
+├── README.md
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── pnpm-workspace.yaml
+
+```
+
+```
 AstraMind Desktop
 
 +--------------------------------------+
