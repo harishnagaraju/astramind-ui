@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.87.1",
+    "@astramind/comfyui-connector": "workspace:*",
     "@astramind/shared": "workspace:*",
     "@astramind/ui-components": "workspace:*",
     "axios": "^1.11.0",

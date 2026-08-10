@@ -6,6 +6,11 @@ export interface InputImage {
   previewUrl: string;
 }
 
+export interface OutputImage {
+  name: string;
+  previewUrl: string;
+}
+
 export type StudioStatus =
   | { kind: 'ready'; message: string }
   | { kind: 'uploading'; message: string }
@@ -16,20 +21,24 @@ export type StudioStatus =
 
 interface ImageStudioState {
   inputImage: InputImage | null;
+  outputImage: OutputImage | null;
   prompt: string;
   status: StudioStatus;
   setInputImage: (image: InputImage) => void;
   clearInputImage: () => void;
+  setOutputImage: (image: OutputImage | null) => void;
   setPrompt: (prompt: string) => void;
   setStatus: (status: StudioStatus) => void;
 }
 
 export const useImageStudioStore = create<ImageStudioState>((set) => ({
   inputImage: null,
+  outputImage: null,
   prompt: '',
   status: { kind: 'ready', message: 'Ready' },
   setInputImage: (image) => set({ inputImage: image }),
   clearInputImage: () => set({ inputImage: null, status: { kind: 'ready', message: 'Ready' } }),
+  setOutputImage: (image) => set({ outputImage: image }),
   setPrompt: (prompt) => set({ prompt }),
   setStatus: (status) => set({ status }),
 }));

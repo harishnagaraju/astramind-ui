@@ -1,6 +1,7 @@
 import { Sparkles } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
+import { getComfyUiConnector } from './comfyui-client';
 import { GenerationControls } from './components/generation-controls';
 import { ImageDropzone } from './components/image-dropzone';
 import { ImagePreviewPanel } from './components/image-preview-panel';
@@ -11,10 +12,12 @@ import { useImageStudioStore } from './image-studio-store';
 
 export function ImageStudioPage(): React.ReactElement {
   const inputImage = useImageStudioStore((state) => state.inputImage);
+  const outputImage = useImageStudioStore((state) => state.outputImage);
   const prompt = useImageStudioStore((state) => state.prompt);
   const status = useImageStudioStore((state) => state.status);
   const setInputImage = useImageStudioStore((state) => state.setInputImage);
   const clearInputImage = useImageStudioStore((state) => state.clearInputImage);
+  const setOutputImage = useImageStudioStore((state) => state.setOutputImage);
   const setPrompt = useImageStudioStore((state) => state.setPrompt);
   const setStatus = useImageStudioStore((state) => state.setStatus);
   const previousPreviewUrl = useRef<string | null>(null);
@@ -51,14 +54,26 @@ export function ImageStudioPage(): React.ReactElement {
   };
 
   const handleGenerate = (): void => {
-    if (inputImage === null) {
+    if (inputImage === null || prompt.trim().length === 0) {
       return;
     }
 
-    setStatus({
-      kind: 'error',
-      message: 'No image provider connection is configured.',
-    });
+    setStatus({ kind: 'generating', message: 'Starting generation…', progress: 0 });
+
+    void (async () => {
+      try {
+        const connector = getComfyUiConnector();
+        const result = await connector.generate({ inputImageFile: inputImage.file, prompt }, (progress) => {
+          setStatus({ kind: 'generating', message: progress.message, progress: progress.percent });
+        });
+
+        setOutputImage(result);
+        setStatus({ kind: 'completed', message: 'Generation complete.' });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Image generation failed.';
+        setStatus({ kind: 'error', message });
+      }
+    })();
   };
 
   return (
@@ -93,7 +108,7 @@ export function ImageStudioPage(): React.ReactElement {
             title="Output image"
             description="Generated result"
             kind="output"
-            image={null}
+            image={outputImage}
             emptyState={<OutputEmptyState />}
           />
         </div>

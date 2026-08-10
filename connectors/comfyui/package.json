@@ -1,0 +1,12 @@
+{
+  "name": "@astramind/comfyui-connector",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@astramind/shared": "workspace:*"
+  }
+}

@@ -2,12 +2,16 @@ import { Download, Maximize2, Scan, Trash2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { IconButton } from '../../../components/ui/icon-button';
-import type { InputImage } from '../image-studio-store';
+
+interface PreviewableImage {
+  name: string;
+  previewUrl: string;
+}
 
 interface ImagePreviewPanelProps {
   description: string;
   emptyState: ReactNode;
-  image: InputImage | null;
+  image: PreviewableImage | null;
   kind: 'input' | 'output';
   onClear?: () => void;
   title: string;

@@ -29,6 +29,9 @@ importers:
 
   apps/image-studio:
     dependencies:
+      '@astramind/comfyui-connector':
+        specifier: workspace:*
+        version: link:../../connectors/comfyui
       '@astramind/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -81,6 +84,12 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(supports-color@7.2.0)
+
+  connectors/comfyui:
+    dependencies:
+      '@astramind/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
 
   packages/shared: {}
 
