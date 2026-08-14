@@ -9,3 +9,12 @@ coverage/
 !.env.example
 *.tsbuildinfo
 comfyui-connector-files.zip
+*.jpg
+*.jpeg
+*.png
+*.webp
+/output
+/input/
+# Backend virtualenv and models
+#backend/.venv/
+#backend/models/

@@ -6,11 +6,16 @@ import type {
 } from '@astramind/shared';
 
 import { fetchAvailableCheckpoints } from './checkpoints';
-import { DEFAULT_COMFYUI_GENERATION_SETTINGS, type ComfyUiConnectorConfig } from './config';
+import {
+  DEFAULT_COMFYUI_GENERATION_SETTINGS,
+  DEFAULT_FLUX_KONTEXT_SAMPLER_SETTINGS,
+  DEFAULT_FLUX_KONTEXT_SETTINGS,
+  type ComfyUiConnectorConfig,
+} from './config';
 import { watchComfyUiExecution } from './progress-socket';
 import type { ComfyUiQueuePromptResponse } from './types';
 import { uploadInputImage } from './upload';
-import { buildImageToImageWorkflow } from './workflow';
+import { buildFluxKontextWorkflow, buildImageToImageWorkflow, type ComfyUiPromptGraph } from './workflow';
 
 export class ComfyUiConnector implements ImageGenerationConnector {
   readonly providerName = 'ComfyUI';
@@ -32,22 +37,55 @@ export class ComfyUiConnector implements ImageGenerationConnector {
     onProgress({ percent: 0, message: 'Uploading image to ComfyUI…' });
     const uploaded = await uploadInputImage(baseUrl, request.inputImageFile);
 
-    const checkpointName = await this.resolveCheckpointName();
+    const seed = Math.floor(Math.random() * 1_000_000_000);
+    const isFluxKontext = this.config.modelFamily === 'flux-kontext';
 
-    const workflow = buildImageToImageWorkflow({
-      checkpointName,
-      uploadedImageName: uploaded.name,
-      positivePrompt: request.prompt,
-      negativePrompt: this.config.negativePrompt ?? DEFAULT_COMFYUI_GENERATION_SETTINGS.negativePrompt,
-      steps: this.config.steps ?? DEFAULT_COMFYUI_GENERATION_SETTINGS.steps,
-      cfgScale: this.config.cfgScale ?? DEFAULT_COMFYUI_GENERATION_SETTINGS.cfgScale,
-      denoise: this.config.denoise ?? DEFAULT_COMFYUI_GENERATION_SETTINGS.denoise,
-      samplerName: this.config.samplerName ?? DEFAULT_COMFYUI_GENERATION_SETTINGS.samplerName,
-      scheduler: this.config.scheduler ?? DEFAULT_COMFYUI_GENERATION_SETTINGS.scheduler,
-      seed: Math.floor(Math.random() * 1_000_000_000),
-    });
+    let workflow: ComfyUiPromptGraph;
+    let progressLabel: string;
 
-    onProgress({ percent: 5, message: `Queuing prompt on ${checkpointName}…` });
+    if (isFluxKontext) {
+      const overrides = this.config.fluxKontext ?? {};
+      const settings = {
+        unetName: overrides.unetName ?? DEFAULT_FLUX_KONTEXT_SETTINGS.unetName,
+        clipName1: overrides.clipName1 ?? DEFAULT_FLUX_KONTEXT_SETTINGS.clipName1,
+        clipName2: overrides.clipName2 ?? DEFAULT_FLUX_KONTEXT_SETTINGS.clipName2,
+        vaeName: overrides.vaeName ?? DEFAULT_FLUX_KONTEXT_SETTINGS.vaeName,
+        guidance: overrides.guidance ?? DEFAULT_FLUX_KONTEXT_SETTINGS.guidance,
+      };
+
+      workflow = buildFluxKontextWorkflow({
+        unetName: settings.unetName,
+        clipName1: settings.clipName1,
+        clipName2: settings.clipName2,
+        vaeName: settings.vaeName,
+        uploadedImageName: uploaded.name,
+        positivePrompt: request.prompt,
+        guidance: settings.guidance,
+        steps: this.config.steps ?? DEFAULT_FLUX_KONTEXT_SAMPLER_SETTINGS.steps,
+        samplerName: this.config.samplerName ?? DEFAULT_FLUX_KONTEXT_SAMPLER_SETTINGS.samplerName,
+        scheduler: this.config.scheduler ?? DEFAULT_FLUX_KONTEXT_SAMPLER_SETTINGS.scheduler,
+        seed,
+      });
+      progressLabel = `Queuing prompt on ${settings.unetName}…`;
+    } else {
+      const checkpointName = await this.resolveCheckpointName();
+
+      workflow = buildImageToImageWorkflow({
+        checkpointName,
+        uploadedImageName: uploaded.name,
+        positivePrompt: request.prompt,
+        negativePrompt: this.config.negativePrompt ?? DEFAULT_COMFYUI_GENERATION_SETTINGS.negativePrompt,
+        steps: this.config.steps ?? DEFAULT_COMFYUI_GENERATION_SETTINGS.steps,
+        cfgScale: this.config.cfgScale ?? DEFAULT_COMFYUI_GENERATION_SETTINGS.cfgScale,
+        denoise: this.config.denoise ?? DEFAULT_COMFYUI_GENERATION_SETTINGS.denoise,
+        samplerName: this.config.samplerName ?? DEFAULT_COMFYUI_GENERATION_SETTINGS.samplerName,
+        scheduler: this.config.scheduler ?? DEFAULT_COMFYUI_GENERATION_SETTINGS.scheduler,
+        seed,
+      });
+      progressLabel = `Queuing prompt on ${checkpointName}…`;
+    }
+
+    onProgress({ percent: 5, message: progressLabel });
 
     const clientId = crypto.randomUUID();
 

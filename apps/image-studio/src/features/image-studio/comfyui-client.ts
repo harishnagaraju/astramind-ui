@@ -1,9 +1,38 @@
-console.log("DEBUG env check ->", import.meta.env.VITE_COMFYUI_BASE_URL);
-console.log("DEBUG env check ->", import.meta.env.VITE_COMFYUI_BASE_URL);
-import { createComfyUiConnector } from '@astramind/comfyui-connector';
+import { createComfyUiConnector, type ComfyUiConnectorConfig } from '@astramind/comfyui-connector';
 import type { ImageGenerationConnector } from '@astramind/shared';
 
 let cachedConnector: ImageGenerationConnector | null = null;
+
+/**
+ * Only includes keys the user actually set. Spreading an object with
+ * explicit `undefined` values would otherwise clobber the connector's
+ * defaults during its own merge step.
+ */
+function buildFluxKontextOverrides(): ComfyUiConnectorConfig['fluxKontext'] {
+  const overrides: NonNullable<ComfyUiConnectorConfig['fluxKontext']> = {};
+
+  if (import.meta.env.VITE_COMFYUI_FLUX_UNET !== undefined) {
+    overrides.unetName = import.meta.env.VITE_COMFYUI_FLUX_UNET;
+  }
+
+  if (import.meta.env.VITE_COMFYUI_FLUX_CLIP_L !== undefined) {
+    overrides.clipName1 = import.meta.env.VITE_COMFYUI_FLUX_CLIP_L;
+  }
+
+  if (import.meta.env.VITE_COMFYUI_FLUX_CLIP_T5 !== undefined) {
+    overrides.clipName2 = import.meta.env.VITE_COMFYUI_FLUX_CLIP_T5;
+  }
+
+  if (import.meta.env.VITE_COMFYUI_FLUX_VAE !== undefined) {
+    overrides.vaeName = import.meta.env.VITE_COMFYUI_FLUX_VAE;
+  }
+
+  if (import.meta.env.VITE_COMFYUI_FLUX_GUIDANCE !== undefined) {
+    overrides.guidance = Number(import.meta.env.VITE_COMFYUI_FLUX_GUIDANCE);
+  }
+
+  return overrides;
+}
 
 /**
  * The connector always talks to the relative "/comfyui-api" path, which the
@@ -24,9 +53,13 @@ export function getComfyUiConnector(): ImageGenerationConnector {
     );
   }
 
+  const modelFamily = import.meta.env.VITE_COMFYUI_MODEL_FAMILY === 'flux-kontext' ? 'flux-kontext' : 'stable-diffusion';
+
   cachedConnector = createComfyUiConnector({
     baseUrl: '/comfyui-api',
+    modelFamily,
     checkpointName: import.meta.env.VITE_COMFYUI_CHECKPOINT,
+    fluxKontext: buildFluxKontextOverrides(),
   });
 
   return cachedConnector;
